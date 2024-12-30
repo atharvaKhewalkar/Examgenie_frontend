@@ -1,0 +1,104 @@
+/* Overall container */
+.dashboard-container {
+    display: flex;
+    height: 100vh;
+    font-family: 'Roboto', sans-serif;
+  }
+  
+  /* Main content area */
+  .main-content {
+    margin-left: 250px;
+    padding: 40px;
+    width: calc(100vw - 250px);
+    transition: margin-left 0.3s ease-in-out, width 0.3s ease-in-out;
+    background-color: #f5f5f5;
+  }
+  
+  .generate-paper-container {
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  .genhead h1 {
+    font-size: 36px;
+    font-weight: 700;
+    color: #ffffff;
+    text-align: center;
+    background: #2c3e50;
+    text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+    padding: 5px 10px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+  }
+  .genhead h1:hover{
+    transform: translateY(-5px);
+    color: #ffffff;
+    text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.15);
+  }
+
+  .generate-paper-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .generate-paper-form label {
+    font-size: 1rem;
+    color: #333;
+  }
+  
+  .generate-paper-form select,
+  .generate-paper-form input[type="number"],
+  .generate-paper-form button {
+    padding: 10px;
+    font-size: 1rem;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+    transition: all 0.3s ease-in-out;
+  }
+  
+  .generate-paper-form select:focus,
+  .generate-paper-form input[type="number"]:focus,
+  .generate-paper-form button:hover {
+    border-color: #007bff;
+    background-color: #f1f1f1;
+  }
+  
+  .generate-button {
+    background-color:  #2c3e50;
+    color: white;
+    width: 20%;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+ 
+  }
+  .form-group2{
+        display: flex;
+        align-items: center;
+        justify-content: center;
+  }
+  .generate-button:hover {
+    background-color: #45a049;
+    transform: scale(1.05);
+    color: black;
+  }
+  
+  .generate-button:active {
+    transform: scale(1);
+  }
+  
+  .generate-paper-form input[type="checkbox"] {
+    margin-right: 10px;
+  }
+  
