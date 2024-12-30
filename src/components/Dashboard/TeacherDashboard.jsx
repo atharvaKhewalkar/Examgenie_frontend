@@ -77,19 +77,8 @@ const TeacherDashboard = () => {
         </div>
         </div>
 
-        {/* Action Cards */}
-        <div className="action-cards">
-          <div className="action-card">
-            <FontAwesomeIcon icon={faFileUpload} size="2x" />
-            <h3>Upload Questions</h3>
-            <button className="action-button">Go to Upload <FontAwesomeIcon icon={faArrowRight} /></button>
-          </div>
-          <div className="action-card">
-            <FontAwesomeIcon icon={faChartLine} size="2x" />
-            <h3>View Analytics</h3>
-            <button className="action-button">View Reports <FontAwesomeIcon icon={faArrowRight} /></button>
-          </div>
-        </div>
+       
+        
 
         
 
@@ -118,14 +107,7 @@ const TeacherDashboard = () => {
           </div>
         </div>
 
-        {/* Teacher Collaboration and Communication Section */}
-        <div className="teacher-collaboration">
-          <h3>Teacher Collaboration and Communication</h3>
-          <div className="message-board">
-            
-            <button className="action-button">Send Message</button>
-          </div>
-        </div>
+    
 
       
        
