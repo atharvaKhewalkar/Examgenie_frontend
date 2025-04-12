@@ -47,48 +47,44 @@ const TeacherDashboard = () => {
           <h1>Teacher Dashboard</h1>
         </div>
 
-        {/* Stats Section */}
-        <div className="stats">
-
-      
-        <div className="dashboard-stats">
+        <div className="stats-container">
           <div className="stat-card">
             <FontAwesomeIcon icon={faClipboardList} size="2x" />
             <h2>Uploaded Questions</h2>
             <p>100 questions</p>
           </div>
+
           <div className="stat-card">
             <FontAwesomeIcon icon={faTasks} size="2x" />
             <h2>Generated Papers</h2>
             <p>5 papers</p>
           </div>
-        </div>
-        <div className="dashboard-stats">
+
           <div className="stat-card">
             <FontAwesomeIcon icon={faClipboardList} size="2x" />
             <h2>Department</h2>
             <p>Information Technology</p>
           </div>
+
           <div className="stat-card">
             <FontAwesomeIcon icon={faTasks} size="2x" />
             <h2>Number of Subjects</h2>
             <p>5</p>
           </div>
         </div>
-        </div>
 
-       
-        
 
-        
+
+
+
 
         {/* Collaborative Paper Review Section */}
         <div className="collaborative-review">
           <h3>Collaborative Paper Review</h3>
-          
+
           {activeTab === "review" ? (
             <div className="review-section">
-              
+
               <button className="action-button">Start Reviewing</button>
             </div>
           ) : (
@@ -107,10 +103,10 @@ const TeacherDashboard = () => {
           </div>
         </div>
 
-    
 
-      
-       
+
+
+
 
 
         {/* Analytics Chart Section */}

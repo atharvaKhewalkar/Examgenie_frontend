@@ -133,6 +133,19 @@ body {
     color: #3e59d3;
 }
 
+/* Add to authentication.css */
+.input-field.error {
+    border: 1px solid #ff4d4d;
+    background-color: #fff0f0;
+  }
+  
+.error-message {
+color: #ff4d4d;
+font-size: 12px;
+margin-top: 5px;
+text-align: left;
+}
+
 /* Mobile Responsiveness */
 @media (max-width: 768px) {
     .auth-container {

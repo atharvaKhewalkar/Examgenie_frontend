@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+// src/components/uploadqpr/uploadqpr.jsx
+import React, { useState, useEffect } from 'react';
 import Sidebar from '../sidebar/sidebar';
+import { questionService } from '../../services/api';
 import './uploadqpr.css';
 
 const UploadQuestionPaper = () => {
@@ -9,12 +11,20 @@ const UploadQuestionPaper = () => {
   const [subjectCode, setSubjectCode] = useState('');
   const [categorized, setCategorized] = useState(false);
   const [examType, setExamType] = useState('insem');
+  const [uploadHistory, setUploadHistory] = useState([]);
+  const [isUploading, setIsUploading] = useState(false);
 
-  const uploadHistory = [
-    { id: 1, filename: 'Math_101_Spring.pdf', date: '2024-10-01' },
-    { id: 2, filename: 'Chemistry_202_Spring.docx', date: '2024-09-25' },
-    { id: 3, filename: 'History_202_Fall.txt', date: '2024-09-15' },
-  ];
+  // Fetch upload history when component mounts
+  useEffect(() => {
+    // For now, use mock data
+    // In a real app, you would fetch from your API
+    const mockHistory = [
+      { id: 1, filename: 'Math_101_Spring.pdf', date: '2024-10-01' },
+      { id: 2, filename: 'Chemistry_202_Spring.docx', date: '2024-09-25' },
+      { id: 3, filename: 'History_202_Fall.txt', date: '2024-09-15' },
+    ];
+    setUploadHistory(mockHistory);
+  }, []);
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -30,21 +40,52 @@ const UploadQuestionPaper = () => {
     }
   };
 
-  const handleFileUpload = () => {
+  const handleFileUpload = async () => {
     if (!selectedFile) {
       setUploadStatus('Please select a file to upload.');
       return;
     }
 
-    // If you want to include subject data in the upload request, you can append it to the form data
+    if (!subjectName) {
+      setUploadStatus('Please enter a subject name.');
+      return;
+    }
+
     const formData = new FormData();
     formData.append('file', selectedFile);
     formData.append('subjectName', subjectName);
     formData.append('subjectCode', subjectCode);
     formData.append('categorized', categorized ? 'Categorized' : 'Uncategorized');
+    formData.append('examType', examType);
 
-    // Simulate upload success
-    setUploadStatus('File uploaded successfully!');
+    try {
+      setIsUploading(true);
+      
+      // In development, simulate API call success
+      // In production, uncomment the next line to make the actual API call
+      // const response = await questionService.uploadQuestionBank(formData);
+      
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      setUploadStatus('File uploaded successfully!');
+      
+      // Update the upload history with the new file
+      const newUpload = {
+        id: Date.now(),
+        filename: selectedFile.name,
+        date: new Date().toISOString().split('T')[0]
+      };
+      setUploadHistory([newUpload, ...uploadHistory]);
+      
+      // Reset form
+      setSelectedFile(null);
+      
+    } catch (error) {
+      setUploadStatus(`Upload failed: ${error.response?.data?.message || error.message}`);
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleToggleCategorized = () => {
@@ -53,7 +94,7 @@ const UploadQuestionPaper = () => {
 
   return (
     <div className="dashboard-container">
-      <Sidebar /> {/* Sidebar */}
+      <Sidebar />
 
       <div className="main-content">
         <div className="upload-container">
@@ -108,7 +149,6 @@ const UploadQuestionPaper = () => {
             <label className="toggle-label">Uncategorized</label>
           </div>
           
-
           {/* Upload Box */}
           <div className="upload-box">
             <label htmlFor="file-upload" className="upload-label">
@@ -128,8 +168,21 @@ const UploadQuestionPaper = () => {
             />
           </div>
 
-          {uploadStatus && <p className="upload-status">{uploadStatus}</p>}
-          {selectedFile && <button className="upload-btn" onClick={handleFileUpload}>Upload File</button>}
+          {uploadStatus && (
+            <p className={`upload-status ${uploadStatus.includes('success') ? 'success' : ''}`}>
+              {uploadStatus}
+            </p>
+          )}
+          
+          {selectedFile && (
+            <button 
+              className="upload-btn" 
+              onClick={handleFileUpload}
+              disabled={isUploading}
+            >
+              {isUploading ? 'Uploading...' : 'Upload File'}
+            </button>
+          )}
 
           {/* Displaying Upload History */}
           <div className="upload-history">
