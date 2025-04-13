@@ -1,0 +1,115 @@
+/* Wrapper for the editor */
+.editor-wrapper {
+    padding: 2rem;
+    background-color: #ececec;
+    min-height: 100vh;
+    font-family: 'Segoe UI', sans-serif;
+    overflow-y: auto;
+  }
+  
+  /* Title styling */
+  .editor-title {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    color: #2c3e50;
+  }
+  
+  /* Main document box */
+  .document-container {
+    background: white;
+    width: 794px; /* A4 width at 96dpi */
+    min-height: 1123px; /* A4 height at 96dpi */
+    margin: 0 auto;
+    padding: 2rem;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    border-radius: 6px;
+  }
+  
+  /* Individual question block */
+  .question-block {
+    position: relative;
+    margin-bottom: 1.5rem;
+  }
+  
+  /* Editable textarea */
+  .question-textarea {
+    width: 100%;
+    padding: 1rem;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    resize: vertical;
+    line-height: 1.6;
+    font-family: inherit;
+  }
+  
+  /* Delete button */
+  .delete-btn {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    background: transparent;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    color: #c0392b;
+  }
+  
+  /* Action buttons */
+  .editor-actions {
+    text-align: center;
+    margin-top: 2rem;
+  }
+  
+  .btn {
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    margin: 0 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    border: none;
+    color: white;
+    transition: background 0.3s ease;
+  }
+  
+  .save-btn {
+    background-color: #2ecc71;
+  }
+  
+  .save-btn:hover {
+    background-color: #27ae60;
+  }
+  
+  .download-btn {
+    background-color: #3498db;
+  }
+  
+  .download-btn:hover {
+    background-color: #2980b9;
+  }
+  
+  /* PDF-only styling */
+  .hidden-preview {
+    display: none;
+  }
+  
+  .pdf-title {
+    font-size: 20px;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 2rem;
+    text-decoration: underline;
+    font-family: 'Times New Roman', Times, serif;
+    color: black;
+  }
+  
+  .print-mode {
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 16px;
+    margin-bottom: 1.5rem;
+    line-height: 1.8;
+    color: black;
+  }
+  

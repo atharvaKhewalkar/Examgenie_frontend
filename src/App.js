@@ -10,6 +10,7 @@ import ViewArchives from './components/archives/viewarchives';
 import UploadQuestionPaper from './components/uploadqpr/uploadqpr';
 import Profile from './components/profile/prof';
 import Settings from './components/settings/Settings';
+import QuestionPaperEditor from './components/QuestionPaperEditor/QuestionPaperEditor'
 // Import Settings component when created
 
 function App() {
@@ -22,7 +23,7 @@ function App() {
             <ProtectedRoute>
               <Homepage />
             </ProtectedRoute>
-          } />
+          } />a
           <Route path="/generatepaper" element={
             <ProtectedRoute>
               <GeneratePaper />
@@ -46,6 +47,11 @@ function App() {
           <Route path="/settings" element={
             <ProtectedRoute>
               <Settings />
+            </ProtectedRoute>
+          } />
+          <Route path="/edit-question-paper" element={
+            <ProtectedRoute>
+              <QuestionPaperEditor />
             </ProtectedRoute>
           } />
         </Routes>

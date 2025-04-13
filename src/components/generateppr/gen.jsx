@@ -6,10 +6,10 @@ import { AppContext } from '../../context/store';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faInfoCircle } from '@fortawesome/free-solid-svg-icons';
 import './gen.css';
-
+import { useNavigate } from 'react-router-dom';
 const GeneratePaper = () => {
   const { state, dispatch } = useContext(AppContext);
-  
+  const navigate = useNavigate();
   // Initial form state with all required parameters
   const [formData, setFormData] = useState({
     // Subject Information
@@ -954,6 +954,12 @@ const GeneratePaper = () => {
                 >
                   Download PDF
                 </button>
+                <button
+        onClick={() => navigate('/edit-question-paper')}
+        className="mt-4 px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+      >
+        Edit Question Paper
+      </button>
               </div>
             </div>
           )}
