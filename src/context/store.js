@@ -21,7 +21,10 @@ function reducer(state, action) {
     case 'SET_QUESTIONS':
       return { ...state, questions: action.payload };
     case 'ADD_PAPER':
-      return { ...state, generatedPapers: [...state.generatedPapers, action.payload] };
+      return {
+        ...state,
+        generatedPapers: [action.payload, ...state.generatedPapers].slice(0, 20) // Keep last 20 papers
+      };
     case 'UPDATE_USER_PREFERENCES':
       return { ...state, user: action.payload };
     default:
@@ -31,7 +34,7 @@ function reducer(state, action) {
 
 export const AppProvider = ({ children }) => {
   const [state, dispatch] = useReducer(reducer, initialState);
-  
+
   return (
     <AppContext.Provider value={{ state, dispatch }}>
       {children}

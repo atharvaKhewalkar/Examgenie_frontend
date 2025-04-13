@@ -8,8 +8,8 @@ const ViewArchives = () => {
   const { state } = useContext(AppContext);
   const [papers, setPapers] = useState([]);
   const [selectedPaper, setSelectedPaper] = useState(null);
-  const [filterTopic, setFilterTopic] = useState('all');
-  const [filterDifficulty, setFilterDifficulty] = useState('all');
+  const [filterSubject, setFilterSubject] = useState('all');
+  const [filterDepartment, setFilterDepartment] = useState('all');
 
   useEffect(() => {
     // Fetch previously generated papers from localStorage
@@ -34,14 +34,14 @@ const ViewArchives = () => {
   };
 
   const filteredPapers = papers.filter(paper => {
-    const topicMatch = filterTopic === 'all' || paper.topic === filterTopic;
-    const difficultyMatch = filterDifficulty === 'all' || paper.difficulty === filterDifficulty;
-    return topicMatch && difficultyMatch;
+    const subjectMatch = filterSubject === 'all' || paper.subjectName === filterSubject;
+    const departmentMatch = filterDepartment === 'all' || paper.department === filterDepartment;
+    return subjectMatch && departmentMatch;
   });
 
-  // Get unique topics and difficulties for filters
-  const topics = ['all', ...new Set(papers.map(paper => paper.topic))];
-  const difficulties = ['all', ...new Set(papers.map(paper => paper.difficulty))];
+  // Get unique subjects and departments for filters
+  const subjects = ['all', ...new Set(papers.map(paper => paper.subjectName))];
+  const departments = ['all', ...new Set(papers.map(paper => paper.department))];
 
   return (
     <div className="dashboard-container">
@@ -55,30 +55,30 @@ const ViewArchives = () => {
           
           <div className="archives-filters">
             <div className="filter-group">
-              <label htmlFor="topic-filter">Filter by Topic:</label>
+              <label htmlFor="subject-filter">Filter by Subject:</label>
               <select 
-                id="topic-filter" 
-                value={filterTopic} 
-                onChange={(e) => setFilterTopic(e.target.value)}
+                id="subject-filter" 
+                value={filterSubject} 
+                onChange={(e) => setFilterSubject(e.target.value)}
               >
-                {topics.map(topic => (
-                  <option key={topic} value={topic}>
-                    {topic === 'all' ? 'All Topics' : topic.charAt(0).toUpperCase() + topic.slice(1)}
+                {subjects.map(subject => (
+                  <option key={subject} value={subject}>
+                    {subject === 'all' ? 'All Subjects' : subject}
                   </option>
                 ))}
               </select>
             </div>
             
             <div className="filter-group">
-              <label htmlFor="difficulty-filter">Filter by Difficulty:</label>
+              <label htmlFor="department-filter">Filter by Department:</label>
               <select 
-                id="difficulty-filter" 
-                value={filterDifficulty} 
-                onChange={(e) => setFilterDifficulty(e.target.value)}
+                id="department-filter" 
+                value={filterDepartment} 
+                onChange={(e) => setFilterDepartment(e.target.value)}
               >
-                {difficulties.map(difficulty => (
-                  <option key={difficulty} value={difficulty}>
-                    {difficulty === 'all' ? 'All Difficulties' : difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}
+                {departments.map(department => (
+                  <option key={department} value={department}>
+                    {department === 'all' ? 'All Departments' : department}
                   </option>
                 ))}
               </select>
@@ -98,11 +98,12 @@ const ViewArchives = () => {
               </div>
               
               <div className="paper-metadata">
-                <p><strong>Topic:</strong> {selectedPaper.topic}</p>
-                <p><strong>Type:</strong> {selectedPaper.type}</p>
-                <p><strong>Difficulty:</strong> {selectedPaper.difficulty}</p>
+                <p><strong>Subject:</strong> {selectedPaper.subjectName}</p>
+                <p><strong>Department:</strong> {selectedPaper.department}</p>
+                <p><strong>Topics:</strong> {selectedPaper.topics ? selectedPaper.topics.join(', ') : 'N/A'}</p>
                 <p><strong>Questions:</strong> {selectedPaper.questionCount || 'N/A'}</p>
                 <p><strong>Total Marks:</strong> {selectedPaper.totalMarks || 'N/A'}</p>
+                <p><strong>Duration:</strong> {selectedPaper.duration ? `${selectedPaper.duration} minutes` : 'N/A'}</p>
                 <p><strong>Generated on:</strong> {new Date(selectedPaper.timestamp).toLocaleDateString()}</p>
               </div>
               
@@ -135,10 +136,11 @@ const ViewArchives = () => {
                         Delete
                       </button>
                     </div>
-                    <p>Topic: {paper.topic}</p>
-                    <p>Type: {paper.type}</p>
-                    <p>Difficulty: {paper.difficulty}</p>
-                    <p>Generated on: {new Date(paper.timestamp).toLocaleDateString()}</p>
+                    <p><strong>Subject:</strong> {paper.subjectName}</p>
+                    <p><strong>Department:</strong> {paper.department}</p>
+                    <p><strong>Total Marks:</strong> {paper.totalMarks}</p>
+                    <p><strong>Duration:</strong> {paper.duration} minutes</p>
+                    <p><strong>Generated on:</strong> {new Date(paper.timestamp).toLocaleDateString()}</p>
                     <button 
                       className="view-btn"
                       onClick={() => handleViewPaper(paper)}
