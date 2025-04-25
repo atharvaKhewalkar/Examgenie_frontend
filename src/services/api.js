@@ -17,6 +17,7 @@ api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
     if (token) {
+      console.log("hiiiiiiiiiiiiiiiiiiiii",token);
       config.headers['Authorization'] = `Bearer ${token}`;
     }
     return config;
@@ -46,8 +47,40 @@ export const questionService = {
     });
   },
   getQuestions: () => api.get('questions/'),
-  generatePaper: (params) => api.post('papers/generate/', params),
   getPapers: () => api.get('papers/'),
+  
+  // Generate a new question paper based on provided parameters
+  generatePaper: async (paperParams) => {
+    try {
+      const response = await api.post('/papers/generate/', paperParams);
+      return response;
+    } catch (error) {
+      console.error('API Error - Generate Paper:', error);
+      throw error;
+    }
+  },
+  
+  // Get a specific paper by ID
+  getPaper: async (paperId) => {
+    try {
+      const response = await api.get(`/papers/${paperId}/`);
+      return response;
+    } catch (error) {
+      console.error('API Error - Get Paper:', error);
+      throw error;
+    }
+  },
+  
+  // Get all papers for the current user
+  getUserPapers: async () => {
+    try {
+      const response = await api.get('/papers/user/');
+      return response;
+    } catch (error) {
+      console.error('API Error - Get User Papers:', error);
+      throw error;
+    }
+  }
 };
 
 // User services

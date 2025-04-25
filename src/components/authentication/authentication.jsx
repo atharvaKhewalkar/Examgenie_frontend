@@ -104,7 +104,7 @@ const AuthPage = () => {
         })
       });
   
-      const data = await response.json();
+      const data = await response.json();     
       console.log("Login response:", data);
       console.log("Login status:", response.status);
 
