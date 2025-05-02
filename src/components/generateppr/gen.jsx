@@ -26,41 +26,41 @@ const GeneratePaper = () => {
         name: "Multiple Choice Questions",
         questionType: "mcq",
         numQuestions: 10,
-        marksPerQuestion: 2
+        marksPerQuestion: 2,
       },
       {
         name: "Short Answer Questions",
         questionType: "descriptive",
         numQuestions: 5,
-        marksPerQuestion: 5
+        marksPerQuestion: 5,
       },
       {
         name: "Programming Questions",
         questionType: "programming",
         numQuestions: 3,
-        marksPerQuestion: 10
+        marksPerQuestion: 10,
       },
       {
         name: "Numerical Problems",
         questionType: "numerical",
         numQuestions: 5,
-        marksPerQuestion: 4
-      }
+        marksPerQuestion: 4,
+      },
     ],
     difficultyDistribution: {
       easy: 30,
       medium: 50,
-      hard: 20
+      hard: 20,
     },
     cognitiveDistribution: {
       remember: 20,
       understand: 30,
       apply: 30,
-      analyze: 20
+      analyze: 20,
     },
     practicalTheoretical: {
       theoretical: 60,
-      practical: 40
+      practical: 40,
     },
     // Legacy fields kept for compatibility
     questionTypes: {
@@ -70,7 +70,7 @@ const GeneratePaper = () => {
       programming: true,
     },
     customTopic: "",
-    numSections: 4
+    numSections: 4,
   });
 
   // Predefined lists for dropdowns
@@ -84,6 +84,7 @@ const GeneratePaper = () => {
     "Chemical",
     "Biotechnology",
   ];
+  const year = ["First Year", "Second Year", "Third Year", "Fourth Year"];
 
   const commonTopics = {
     "Computer Science": [
@@ -103,6 +104,7 @@ const GeneratePaper = () => {
       "Data Mining",
       "Mobile Application Development",
       "IoT",
+      "ARM",
     ],
     Electronics: [
       "Digital Electronics",
@@ -160,6 +162,73 @@ const GeneratePaper = () => {
   const [activeTab, setActiveTab] = useState("basic");
   const [availableTopics, setAvailableTopics] = useState([]);
 
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== "") {
+      const cookies = document.cookie.split(";");
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === name + "=") {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
+  const handleSave = async () => {
+    try {
+      const questionsToSave = generatedPaper.questions.map((q) => ({
+        id: q.id,
+        text: q.text,
+        difficulty: q.difficulty,
+        cognitive_level: q.cognitive_level,
+        marks: q.marks,
+        options: q.options || null,
+        answer: q.answer || "",
+        is_practical: q.is_practical,
+        topic: q.topic || "",
+        tags: q.tags || [],
+        diagram: q.diagram || null,
+        formula_required: q.formula_required || false,
+      }));
+
+      const response = await fetch(
+        `/api/papers/${generatedPaper.id}/save_questions/`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": getCookie("csrftoken"),
+          },
+          body: JSON.stringify({ questions: questionsToSave }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || "Failed to save changes");
+      }
+
+      // Update local state
+      setGeneratedPaper((prev) => ({
+        ...prev,
+        questions: prev.questions.map((q) => {
+          const updatedQ = data.questions.find((uq) => uq.id === q.id);
+          return updatedQ ? { ...q, ...updatedQ } : q;
+        }),
+        updated_at: data.updated_at,
+      }));
+
+      alert(data.message || "Changes saved successfully!");
+    } catch (error) {
+      console.error("Save error:", error);
+      alert(`Error: ${error.message}`);
+    }
+  };
+
   // Handle department change to update available topics
   const handleDepartmentChange = (e) => {
     const department = e.target.value;
@@ -169,6 +238,16 @@ const GeneratePaper = () => {
       topics: [],
     });
     setAvailableTopics(commonTopics[department] || []);
+  };
+
+  const handleYearChange = (e) => {
+    const year = e.target.value;
+    setFormData({
+      ...formData,
+      year,
+      topics: [],
+    });
+    setAvailableTopics(commonTopics[year] || []);
   };
 
   // Handle topic selection
@@ -210,60 +289,62 @@ const GeneratePaper = () => {
   const handleQuestionTypeToggle = (type) => {
     const updatedQuestionTypes = {
       ...formData.questionTypes,
-      [type]: !formData.questionTypes[type]
+      [type]: !formData.questionTypes[type],
     };
-    
+
     setFormData({
       ...formData,
-      questionTypes: updatedQuestionTypes
+      questionTypes: updatedQuestionTypes,
     });
-    
+
     // Update sections based on enabled question types
     updateSectionsBasedOnQuestionTypes(updatedQuestionTypes);
   };
-  
+
   // Update sections when question types change
   const updateSectionsBasedOnQuestionTypes = (questionTypes) => {
-    const enabledTypes = Object.keys(questionTypes).filter(type => questionTypes[type]);
+    const enabledTypes = Object.keys(questionTypes).filter(
+      (type) => questionTypes[type]
+    );
     if (enabledTypes.length === 0) return;
-    
+
     // Create a new section for each enabled question type
     const newSections = enabledTypes.map((type, index) => {
       const typeName = {
-        'mcq': 'Multiple Choice Questions',
-        'descriptive': 'Short Answer Questions',
-        'programming': 'Programming Questions',
-        'numerical': 'Numerical Problems'
+        mcq: "Multiple Choice Questions",
+        descriptive: "Short Answer Questions",
+        programming: "Programming Questions",
+        numerical: "Numerical Problems",
       }[type];
-      
+
       const marksPerQuestion = {
-        'mcq': 2,
-        'descriptive': 5,
-        'programming': 10,
-        'numerical': 4
+        mcq: 2,
+        descriptive: 5,
+        programming: 10,
+        numerical: 4,
       }[type];
-      
+
       const numQuestions = {
-        'mcq': 10,
-        'descriptive': 5,
-        'programming': 3,
-        'numerical': 5
+        mcq: 10,
+        descriptive: 5,
+        programming: 3,
+        numerical: 5,
       }[type];
-      
+
       return {
         name: typeName,
         questionType: type,
         numQuestions: numQuestions,
-        marksPerQuestion: marksPerQuestion
+        marksPerQuestion: marksPerQuestion,
       };
     });
-    
-    setFormData(prevData => ({
+
+    setFormData((prevData) => ({
       ...prevData,
       sections: newSections,
-      numSections: newSections.length
+      numSections: newSections.length,
     }));
-    
+
     // Recalculate total marks
     calculateTotalMarks(newSections);
   };
@@ -324,12 +405,12 @@ const GeneratePaper = () => {
     const totalMarks = sections.reduce((sum, section) => {
       return sum + section.numQuestions * section.marksPerQuestion;
     }, 0);
-    
-    setFormData(prevData => ({
+
+    setFormData((prevData) => ({
       ...prevData,
-      totalMarks
+      totalMarks,
     }));
-    
+
     return totalMarks;
   };
 
@@ -356,22 +437,23 @@ const GeneratePaper = () => {
 
   // Add a new section
   const handleAddSection = () => {
-    if (formData.sections.length < 5) { // Limit to 5 sections
+    if (formData.sections.length < 5) {
+      // Limit to 5 sections
       const newSection = {
         name: `Section ${String.fromCharCode(65 + formData.sections.length)}`,
         questionType: "descriptive",
         numQuestions: 3,
         marksPerQuestion: 5,
       };
-      
+
       const updatedSections = [...formData.sections, newSection];
-      
+
       setFormData({
         ...formData,
         sections: updatedSections,
         numSections: formData.numSections + 1,
       });
-      
+
       // Recalculate total marks
       calculateTotalMarks(updatedSections);
     }
@@ -379,7 +461,8 @@ const GeneratePaper = () => {
 
   // Remove a section
   const handleRemoveSection = (index) => {
-    if (formData.sections.length > 1) { // Keep at least one section
+    if (formData.sections.length > 1) {
+      // Keep at least one section
       const updatedSections = formData.sections.filter((_, i) => i !== index);
 
       // Rename sections to maintain alphabetical order
@@ -393,7 +476,7 @@ const GeneratePaper = () => {
         sections: renamedSections,
         numSections: formData.numSections - 1,
       });
-      
+
       // Recalculate total marks
       calculateTotalMarks(renamedSections);
     }
@@ -414,7 +497,7 @@ const GeneratePaper = () => {
     const weights = Object.values(distribution);
     const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
     const random = Math.random() * totalWeight;
-    
+
     let cumulativeWeight = 0;
     for (let i = 0; i < categories.length; i++) {
       cumulativeWeight += weights[i];
@@ -459,26 +542,32 @@ const GeneratePaper = () => {
         subjectName: formData.subjectName,
         department: formData.department,
         topics: formData.topics,
-        sections: formData.sections.map(section => ({
+        sections: formData.sections.map((section) => ({
           name: section.name,
           numQuestions: section.numQuestions,
           questionType: section.questionType,
-          marksPerQuestion: section.marksPerQuestion
+          marksPerQuestion: section.marksPerQuestion,
         })),
         difficultyDistribution: formData.difficultyDistribution,
         cognitiveDistribution: formData.cognitiveDistribution,
-        practicalTheoretical: formData.practicalTheoretical
+        practicalTheoretical: formData.practicalTheoretical,
       };
-      
+
       // Optional parameters to include if they're present in formData
       if (formData.totalMarks) paperParams.totalMarks = formData.totalMarks;
       if (formData.duration) paperParams.duration = formData.duration;
-      if (formData.includeFormula !== undefined) paperParams.includeFormula = formData.includeFormula;
-      if (formData.includeDiagrams !== undefined) paperParams.includeDiagrams = formData.includeDiagrams;
-      if (formData.includeAnswerKey !== undefined) paperParams.includeAnswerKey = formData.includeAnswerKey;
+      if (formData.includeFormula !== undefined)
+        paperParams.includeFormula = formData.includeFormula;
+      if (formData.includeDiagrams !== undefined)
+        paperParams.includeDiagrams = formData.includeDiagrams;
+      if (formData.includeAnswerKey !== undefined)
+        paperParams.includeAnswerKey = formData.includeAnswerKey;
 
       // Print the data before sending it to backend
-      console.log("Paper parameters to be sent to backend:", JSON.stringify(paperParams, null, 2));
+      console.log(
+        "Paper parameters to be sent to backend:",
+        JSON.stringify(paperParams, null, 2)
+      );
 
       // In production, make the actual API call
       const response = await questionService.generatePaper(paperParams);
@@ -677,6 +766,23 @@ const GeneratePaper = () => {
                       {departments.map((dept) => (
                         <option key={dept} value={dept}>
                           {dept}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="year">Year:</label>
+                    <select
+                      id="year"
+                      name="year"
+                      value={formData.year}
+                      onChange={handleYearChange}
+                    >
+                      <option value="">Select year</option>
+                      {year.map((year) => (
+                        <option key={year} value={year}>
+                          {year}
                         </option>
                       ))}
                     </select>
@@ -1143,133 +1249,195 @@ const GeneratePaper = () => {
             </div>
           ) : (
             <div className="paper-preview">
-  <h2>{generatedPaper.title}</h2>
+              <h2>{generatedPaper.title}</h2>
 
-  <div className="paper-metadata">
-    <div className="metadata-item">
-      <strong>Subject:</strong> {generatedPaper.subject_name}
-    </div>
-    <div className="metadata-item">
-      <strong>Department:</strong> {generatedPaper.department}
-    </div>
-    <div className="metadata-item">
-      <strong>Total Marks:</strong> {generatedPaper.total_marks}
-    </div>
-    <div className="metadata-item">
-      <strong>Duration:</strong> {generatedPaper.duration} minutes
-    </div>  
-  </div>
-
-  <div className="paper-topics">
-    <strong>Topics:</strong> {generatedPaper.topics.join(", ")}
-  </div>
-
-  {generatedPaper.include_formula && (
-    <div className="formula-sheet">
-      <h3>Formula Sheet</h3>
-      <p>This is a placeholder for the formula sheet that would be generated for this exam.</p>
-    </div>
-  )}
-
-  <div className="paper-sections">
-    {generatedPaper.sections.map((section, sectionIndex) => {
-      const sectionQuestions = generatedPaper.questions.filter(
-        (q) => q.section === section.id
-      );
-
-      return (
-        <div key={sectionIndex} className="paper-section">
-          <h3>
-            {section.name} (
-            {section.question_type === "mcq"
-              ? "Multiple Choice"
-              : section.question_type === "numerical"
-              ? "Numerical"
-              : section.question_type === "programming"
-              ? "Programming"
-              : "Descriptive"}
-            )
-          </h3>
-
-          <div className="section-questions">
-            {sectionQuestions.map((question, questionIndex) => (
-              <div key={questionIndex} className="question-item">
-                <div className="question-header">
-                  <h4>
-                    Question {questionIndex + 1}{" "}
-                    <span className="marks">({question.marks} marks)</span>
-                  </h4>
-                  <div className="question-tags">
-                    <span className={`difficulty-tag ${question.difficulty}`}>
-                      {question.difficulty.charAt(0).toUpperCase() +
-                        question.difficulty.slice(1)}
-                    </span>
-                    <span className="cognitive-tag">
-                      {question.cognitive_level.charAt(0).toUpperCase() +
-                        question.cognitive_level.slice(1)}
-                    </span>
-                    <span
-                      className={`type-tag ${
-                        question.is_practical ? "practical" : "theoretical"
-                      }`}
-                    >
-                      {question.is_practical ? "Practical" : "Theoretical"}
-                    </span>
-                  </div>
+              <div className="paper-metadata">
+                <div className="metadata-item">
+                  <strong>Subject:</strong> {generatedPaper.subject_name}
                 </div>
-
-                <p className="question-text">{question.text}</p>
-
-                {question.question_type === "mcq" && question.options && (
-                  <div className="question-options">
-                    {question.options.map((option, optionIndex) => (
-                      <div key={optionIndex} className="option">
-                        <span className="option-letter">
-                          {String.fromCharCode(65 + optionIndex)}.
-                        </span>{" "}
-                        {option}
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {generatedPaper.include_answer_key && (
-                  <div className="question-answer">
-                    <strong>Answer:</strong> {question.answer}
-                  </div>
-                )}
+                <div className="metadata-item">
+                  <strong>Department:</strong> {generatedPaper.department}
+                </div>
+                <div className="metadata-item">
+                  <strong>Total Marks:</strong> {generatedPaper.total_marks}
+                </div>
+                <div className="metadata-item">
+                  <strong>Duration:</strong> {generatedPaper.duration} minutes
+                </div>
               </div>
-            ))}
-          </div>
-        </div>
-      );
-    })}
-  </div>
 
-  <div className="paper-actions">
-    <button
-      className="generate-button"
-      onClick={() => setGeneratedPaper(null)}
-    >
-      Generate Another Paper
-    </button>
-    <button
-      className="download-button"
-      onClick={() =>
-        alert("PDF download functionality will be implemented with backend integration")
-      }
-    >
-      Download PDF
-    </button>
-    <button
-      onClick={() => navigate("/edit-question-paper")}
-      className="mt-4 px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-    >
-      Edit Question Paper
-    </button>
-  </div>
-</div>
+              <div className="paper-topics">
+                <strong>Topics:</strong> {generatedPaper.topics.join(", ")}
+              </div>
 
+              {generatedPaper.include_formula && (
+                <div className="formula-sheet">
+                  <h3>Formula Sheet</h3>
+                  <p>
+                    This is a placeholder for the formula sheet that would be
+                    generated for this exam.
+                  </p>
+                </div>
+              )}
+
+              <div className="paper-sections">
+                {generatedPaper.sections.map((section, sectionIndex) => {
+                  const sectionQuestions = generatedPaper.questions.filter(
+                    (q) => q.section === section.id
+                  );
+
+                  return (
+                    <div key={sectionIndex} className="paper-section">
+                      <h3>
+                        {section.name} (
+                        {section.question_type === "mcq"
+                          ? "Multiple Choice"
+                          : section.question_type === "numerical"
+                          ? "Numerical"
+                          : section.question_type === "programming"
+                          ? "Programming"
+                          : "Descriptive"}
+                        )
+                      </h3>
+
+                      <div className="section-questions">
+                        {sectionQuestions.map((question, questionIndex) => {
+                          // Create a unique identifier for each question
+                          const questionId = `question-${section.id}-${questionIndex}`;
+
+                          return (
+                            <div key={questionIndex} className="question-item">
+                              <div className="question-header">
+                                <h4>
+                                  Question {questionIndex + 1}{" "}
+                                  <span className="marks">
+                                    ({question.marks} marks)
+                                  </span>
+                                </h4>
+                                <div className="question-tags">
+                                  <span
+                                    className={`difficulty-tag ${question.difficulty}`}
+                                  >
+                                    {question.difficulty
+                                      .charAt(0)
+                                      .toUpperCase() +
+                                      question.difficulty.slice(1)}
+                                  </span>
+                                  <span className="cognitive-tag">
+                                    {question.cognitive_level
+                                      .charAt(0)
+                                      .toUpperCase() +
+                                      question.cognitive_level.slice(1)}
+                                  </span>
+                                  <span
+                                    className={`type-tag ${
+                                      question.is_practical
+                                        ? "practical"
+                                        : "theoretical"
+                                    }`}
+                                  >
+                                    {question.is_practical
+                                      ? "Practical"
+                                      : "Theoretical"}
+                                  </span>
+                                </div>
+                              </div>
+
+                              {/* Editable question text area */}
+                              <div className="question-text-container">
+                                <textarea
+                                  id={questionId}
+                                  className="question-text-editor w-full p-2 border rounded min-h-24"
+                                  value={question.text}
+                                  onChange={(e) => {
+                                    // Create a copy of the questions array
+                                    const updatedQuestions = [
+                                      ...generatedPaper.questions,
+                                    ];
+                                    // Find this question's index in the entire questions array
+                                    const globalQuestionIndex =
+                                      updatedQuestions.findIndex(
+                                        (q) =>
+                                          q.section === section.id &&
+                                          q === question
+                                      );
+                                    // Update the text of this question
+                                    if (globalQuestionIndex !== -1) {
+                                      updatedQuestions[globalQuestionIndex] = {
+                                        ...question,
+                                        text: e.target.value,
+                                      };
+                                      // Update the state with the modified questions
+                                      setGeneratedPaper({
+                                        ...generatedPaper,
+                                        questions: updatedQuestions,
+                                      });
+                                    }
+                                  }}
+                                />
+                              </div>
+
+                              {question.question_type === "mcq" &&
+                                question.options && (
+                                  <div className="question-options mt-2">
+                                    {question.options.map(
+                                      (option, optionIndex) => (
+                                        <div
+                                          key={optionIndex}
+                                          className="option"
+                                        >
+                                          <span className="option-letter">
+                                            {String.fromCharCode(
+                                              65 + optionIndex
+                                            )}
+                                            .
+                                          </span>{" "}
+                                          {option}
+                                        </div>
+                                      )
+                                    )}
+                                  </div>
+                                )}
+
+                              {generatedPaper.include_answer_key && (
+                                <div className="question-answer mt-2">
+                                  <strong>Answer:</strong> {question.answer}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="paper-actions mt-4">
+                <button
+                  className="generate-button mr-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                  onClick={() => setGeneratedPaper(null)}
+                >
+                  Generate Another Paper
+                </button>
+                <button
+                  className="download-button mr-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                  onClick={() =>
+                    alert(
+                      "PDF download functionality will be implemented with backend integration"
+                    )
+                  }
+                >
+                  Download PDF
+                </button>
+                <button
+                  className="save-button px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                  onClick={handleSave}
+                >
+                  Save Changes
+                </button>
+              </div>
+            </div>
           )}
         </div>
       </div>
