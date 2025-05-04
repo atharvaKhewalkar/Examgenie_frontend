@@ -508,6 +508,9 @@ const GeneratePaper = () => {
     return categories[0]; // fallback
   };
 
+
+ 
+
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -685,6 +688,11 @@ const GeneratePaper = () => {
   //   // Default fallback
   //   return Object.keys(distribution)[0];
   // };
+
+  const previousAlert = () => {
+    alert("20% Previous year content");
+  };
+  
 
   return (
     <div className="dashboard-container">
@@ -1435,6 +1443,12 @@ const GeneratePaper = () => {
                   onClick={handleSave}
                 >
                   Save Changes
+                </button>
+                <button
+                  className="save-button w-[12px] px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                  onClick={previousAlert}
+                >
+                   Previous year %
                 </button>
               </div>
             </div>

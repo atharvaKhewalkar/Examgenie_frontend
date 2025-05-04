@@ -20,7 +20,7 @@ const Sidebar = () => {
         </li>
         <li>
           <Link to="/uploadquestionpaper" className="sidebar-link">
-            <FaUpload className="sidebar-icon" /> Upload Question Bank
+            <FaUpload className="sidebar-icon" /> Upload Syllabus
           </Link>
         </li>
         <li>

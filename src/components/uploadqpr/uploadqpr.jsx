@@ -98,7 +98,7 @@ const UploadQuestionPaper = () => {
 
       <div className="main-content">
         <div className="upload-container">
-          <h1>Upload Question Bank</h1>
+          <h1>Upload Syllabus</h1>
 
           {/* Subject Input Fields */}
           <div className="subject-inputs">
@@ -112,42 +112,22 @@ const UploadQuestionPaper = () => {
                 placeholder="Enter Subject Name"
               />
             </div>
-
             <div className="input-group">
-              <label htmlFor="subject-code">Subject Code (Optional)</label>
-              <input
-                type="text"
-                id="subject-code"
-                value={subjectCode}
-                onChange={(e) => setSubjectCode(e.target.value)}
-                placeholder="Enter Subject Code"
-              />
-            </div>
-            <div className="input-group">
-              <label htmlFor="exam-type">Examination Type</label>
+              <label htmlFor="exam-type">Select Year</label>
               <select 
                 id="exam-type" 
                 value={examType} 
                 onChange={(e) => setExamType(e.target.value)}
               >
-                <option value="insem">Insem</option>
-                <option value="endsem">Endsem</option>
-                <option value="unittest">Unit Test</option>
-                <option value="practicetest">Practice Test</option>
-                <option value="prelims">Prelims</option>
+                <option value="insem">First Year</option>
+                <option value="endsem">Second Year</option>
+                <option value="unittest">Third Year</option>
+                <option value="unittest">Forth Year</option>
+               
               </select>
             </div>
           </div>
 
-          {/* Categorized/Uncategorized Toggle */}
-          <div className="toggle-container">
-            <label className="toggle-label">Categorized</label>
-            <label className="switch">
-              <input type="checkbox" checked={categorized} onChange={handleToggleCategorized} />
-              <span className="slider"></span>
-            </label>
-            <label className="toggle-label">Uncategorized</label>
-          </div>
           
           {/* Upload Box */}
           <div className="upload-box">
@@ -156,7 +136,7 @@ const UploadQuestionPaper = () => {
               {selectedFile ? (
                 <p>{selectedFile.name}</p>
               ) : (
-                <p>Click to Upload</p>
+                <p>Click to Upload Syllabus</p>
               )}
             </label>
             <input
@@ -166,6 +146,10 @@ const UploadQuestionPaper = () => {
               className="upload-input"
               accept=".pdf, .docx, .txt"
             />
+          </div><br></br>
+          <div>
+            <button className="save-button w-[12px] px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+            >Submit</button>
           </div>
 
           {uploadStatus && (
