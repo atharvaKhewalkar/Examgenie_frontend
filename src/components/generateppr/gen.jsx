@@ -178,21 +178,6 @@ const GeneratePaper = () => {
   const [activeTab, setActiveTab] = useState("basic");
   const [availableTopics, setAvailableTopics] = useState([]);
 
-  function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== "") {
-      const cookies = document.cookie.split(";");
-      for (let i = 0; i < cookies.length; i++) {
-        const cookie = cookies[i].trim();
-        if (cookie.substring(0, name.length + 1) === name + "=") {
-          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-          break;
-        }
-      }
-    }
-    return cookieValue;
-  }
-
   const handleSave = async () => {
     try {
       // Flatten updated questions from sections
@@ -226,6 +211,23 @@ const GeneratePaper = () => {
       alert("Failed to save changes.");
     }
     
+  };
+  
+  const handleDownloadPDF = async () => {
+    try {
+      const response = await questionService.downloadPaperPDF(generatedPaper.id);
+  
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `${generatedPaper.title || 'paper'}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      console.error('Failed to download PDF:', error);
+      alert('Error downloading PDF.');
+    }
   };
   
 
@@ -1430,11 +1432,7 @@ const GeneratePaper = () => {
                 </button>
                 <button
                   className="download-button mr-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                  onClick={() =>
-                    alert(
-                      "PDF download functionality will be implemented with backend integration"
-                    )
-                  }
+                  onClick={handleDownloadPDF}
                 >
                   Download PDF
                 </button>

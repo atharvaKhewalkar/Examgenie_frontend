@@ -82,6 +82,18 @@ export const questionService = {
     }
   },
 
+  downloadPaperPDF: async (paperId) => {
+    try {
+      const response = await api.get(`papers/${paperId}/download/`, {
+        responseType: 'blob',
+      });
+      return response;
+    } catch (error) {
+      console.error('API Error - Download PDF:', error);
+      throw error;
+    }
+  },
+
   // ✅ Save updated questions (bulk update)
   updateQuestions: async (questions) => {
     try {
