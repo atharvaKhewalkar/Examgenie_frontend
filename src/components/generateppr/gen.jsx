@@ -157,7 +157,10 @@ const GeneratePaper = () => {
   };
 
   const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedPaper, setGeneratedPaper] = useState(null);
+  const [generatedPaper, setGeneratedPaper] = useState({
+    sections: [],
+    questions: [],
+  });
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState("basic");
   const [availableTopics, setAvailableTopics] = useState([]);
@@ -1267,7 +1270,10 @@ const GeneratePaper = () => {
               </div>
 
               <div className="paper-topics">
-                <strong>Topics:</strong> {generatedPaper.topics.join(", ")}
+                <strong>Topics:</strong>{" "}
+                {Array.isArray(generatedPaper?.topics)
+                  ? generatedPaper.topics.join(", ")
+                  : "Not Available"}
               </div>
 
               {generatedPaper.include_formula && (
@@ -1281,136 +1287,132 @@ const GeneratePaper = () => {
               )}
 
               <div className="paper-sections">
-                {generatedPaper.sections.map((section, sectionIndex) => {
-                  const sectionQuestions = generatedPaper.questions.filter(
-                    (q) => q.section === section.id
-                  );
+                {Array.isArray(generatedPaper?.sections) &&
+                generatedPaper.sections.length > 0 ? (
+                  generatedPaper.sections.map((section, sectionIndex) => {
+                    const sectionQuestions = section.questions || [];
 
-                  return (
-                    <div key={sectionIndex} className="paper-section">
-                      <h3>
-                        {section.name} (
-                        {section.question_type === "mcq"
-                          ? "Multiple Choice"
-                          : section.question_type === "numerical"
-                          ? "Numerical"
-                          : section.question_type === "programming"
-                          ? "Programming"
-                          : "Descriptive"}
-                        )
-                      </h3>
+                    return (
+                      <div key={sectionIndex} className="paper-section">
+                        <h3>
+                          {section.name} (
+                          {section.question_type === "mcq"
+                            ? "Multiple Choice"
+                            : section.question_type === "numerical"
+                            ? "Numerical"
+                            : section.question_type === "programming"
+                            ? "Programming"
+                            : "Descriptive"}
+                          )
+                        </h3>
 
-                      <div className="section-questions">
-                        {sectionQuestions.map((question, questionIndex) => {
-                          // Create a unique identifier for each question
-                          const questionId = `question-${section.id}-${questionIndex}`;
+                        <div className="section-questions">
+                          {sectionQuestions.map((question, questionIndex) => {
+                            const questionId = `question-${section.id}-${questionIndex}`;
 
-                          return (
-                            <div key={questionIndex} className="question-item">
-                              <div className="question-header">
-                                <h4>
-                                  Question {questionIndex + 1}{" "}
-                                  <span className="marks">
-                                    ({question.marks} marks)
-                                  </span>
-                                </h4>
-                                <div className="question-tags">
-                                  <span
-                                    className={`difficulty-tag ${question.difficulty}`}
-                                  >
-                                    {question.difficulty
-                                      .charAt(0)
-                                      .toUpperCase() +
-                                      question.difficulty.slice(1)}
-                                  </span>
-                                  <span className="cognitive-tag">
-                                    {question.cognitive_level
-                                      .charAt(0)
-                                      .toUpperCase() +
-                                      question.cognitive_level.slice(1)}
-                                  </span>
-                                  <span
-                                    className={`type-tag ${
-                                      question.is_practical
-                                        ? "practical"
-                                        : "theoretical"
-                                    }`}
-                                  >
-                                    {question.is_practical
-                                      ? "Practical"
-                                      : "Theoretical"}
-                                  </span>
+                            return (
+                              <div
+                                key={questionIndex}
+                                className="question-item"
+                              >
+                                <div className="question-header">
+                                  <h4>
+                                    Question {questionIndex + 1}{" "}
+                                    <span className="marks">
+                                      ({question.marks} marks)
+                                    </span>
+                                  </h4>
+                                  <div className="question-tags">
+                                    <span
+                                      className={`difficulty-tag ${question.difficulty}`}
+                                    >
+                                      {question.difficulty
+                                        .charAt(0)
+                                        .toUpperCase() +
+                                        question.difficulty.slice(1)}
+                                    </span>
+                                    <span className="cognitive-tag">
+                                      {question.cognitive_level
+                                        .charAt(0)
+                                        .toUpperCase() +
+                                        question.cognitive_level.slice(1)}
+                                    </span>
+                                    <span
+                                      className={`type-tag ${
+                                        question.is_practical
+                                          ? "practical"
+                                          : "theoretical"
+                                      }`}
+                                    >
+                                      {question.is_practical
+                                        ? "Practical"
+                                        : "Theoretical"}
+                                    </span>
+                                  </div>
                                 </div>
-                              </div>
 
-                              {/* Editable question text area */}
-                              <div className="question-text-container">
-                                <textarea
-                                  id={questionId}
-                                  className="question-text-editor w-full p-2 border rounded min-h-24"
-                                  value={question.text}
-                                  onChange={(e) => {
-                                    // Create a copy of the questions array
-                                    const updatedQuestions = [
-                                      ...generatedPaper.questions,
-                                    ];
-                                    // Find this question's index in the entire questions array
-                                    const globalQuestionIndex =
-                                      updatedQuestions.findIndex(
-                                        (q) =>
-                                          q.section === section.id &&
-                                          q === question
-                                      );
-                                    // Update the text of this question
-                                    if (globalQuestionIndex !== -1) {
-                                      updatedQuestions[globalQuestionIndex] = {
+                                {/* Editable question text area */}
+                                <div className="question-text-container">
+                                  <textarea
+                                    id={questionId}
+                                    className="question-text-editor w-full p-2 border rounded min-h-24"
+                                    value={question.text}
+                                    onChange={(e) => {
+                                      const updatedSections = [
+                                        ...generatedPaper.sections,
+                                      ];
+                                      updatedSections[sectionIndex].questions[
+                                        questionIndex
+                                      ] = {
                                         ...question,
                                         text: e.target.value,
                                       };
-                                      // Update the state with the modified questions
+
                                       setGeneratedPaper({
                                         ...generatedPaper,
-                                        questions: updatedQuestions,
+                                        sections: updatedSections,
                                       });
-                                    }
-                                  }}
-                                />
-                              </div>
+                                    }}
+                                  />
+                                </div>
 
-                              {question.question_type === "mcq" &&
-                                question.options && (
-                                  <div className="question-options mt-2">
-                                    {question.options.map(
-                                      (option, optionIndex) => (
-                                        <div
-                                          key={optionIndex}
-                                          className="option"
-                                        >
-                                          <span className="option-letter">
-                                            {String.fromCharCode(
-                                              65 + optionIndex
-                                            )}
-                                            .
-                                          </span>{" "}
-                                          {option}
-                                        </div>
-                                      )
-                                    )}
+                                {question.question_type === "mcq" &&
+                                  question.options && (
+                                    <div className="question-options mt-2">
+                                      {question.options.map(
+                                        (option, optionIndex) => (
+                                          <div
+                                            key={optionIndex}
+                                            className="option"
+                                          >
+                                            <span className="option-letter">
+                                              {String.fromCharCode(
+                                                65 + optionIndex
+                                              )}
+                                              .
+                                            </span>{" "}
+                                            {option}
+                                          </div>
+                                        )
+                                      )}
+                                    </div>
+                                  )}
+
+                                {generatedPaper.include_answer_key && (
+                                  <div className="question-answer mt-2">
+                                    <strong>Answer:</strong> {question.answer}
                                   </div>
                                 )}
-
-                              {generatedPaper.include_answer_key && (
-                                <div className="question-answer mt-2">
-                                  <strong>Answer:</strong> {question.answer}
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })}
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })
+                ) : (
+                  <div>No sections available.</div>
+                )}
               </div>
 
               <div className="paper-actions mt-4">
