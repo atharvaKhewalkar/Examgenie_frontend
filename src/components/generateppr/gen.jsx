@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 
 const GeneratePaper = () => {
   const { state, dispatch } = useContext(AppContext);
+  
   const navigate = useNavigate();
   const [slidersTouched, setSlidersTouched] = useState(false);
   // Initial form state with all required parameters
@@ -158,9 +159,21 @@ const GeneratePaper = () => {
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedPaper, setGeneratedPaper] = useState({
-    sections: [],
-    questions: [],
+    id: "", // Paper ID from backend
+    user_id: "",
+    title: "",
+    subject_name: "",
+    department: "",
+    topics: [],
+    total_marks: 0,
+    duration: "",
+    include_formula: false,
+    include_diagrams: false,
+    include_answer_key: true,
+    status: "draft",
+    sections: [], // each section has its own questions[]
   });
+  
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState("basic");
   const [availableTopics, setAvailableTopics] = useState([]);
@@ -182,55 +195,39 @@ const GeneratePaper = () => {
 
   const handleSave = async () => {
     try {
-      const questionsToSave = generatedPaper.questions.map((q) => ({
-        id: q.id,
-        text: q.text,
-        difficulty: q.difficulty,
-        cognitive_level: q.cognitive_level,
-        marks: q.marks,
-        options: q.options || null,
-        answer: q.answer || "",
-        is_practical: q.is_practical,
-        topic: q.topic || "",
-        tags: q.tags || [],
-        diagram: q.diagram || null,
-        formula_required: q.formula_required || false,
-      }));
-
-      const response = await fetch(
-        `/api/papers/${generatedPaper.id}/save_questions/`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": getCookie("csrftoken"),
-          },
-          body: JSON.stringify({ questions: questionsToSave }),
-        }
+      // Flatten updated questions from sections
+      const updatedQuestions = generatedPaper.sections.flatMap(section =>
+        section.questions.map(q => ({
+          id: q.id,
+          text: q.text,
+          marks: q.marks,
+          difficulty: q.difficulty,
+          cognitive_level: q.cognitive_level,
+          options: q.options,
+          answer: q.answer,
+          is_practical: q.is_practical,
+          formula_required: q.formula_required,
+          diagram: q.diagram,
+          topic: q.topic,
+          tags: q.tags,
+        }))
       );
-
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
-        throw new Error(data.message || "Failed to save changes");
-      }
-
-      // Update local state
-      setGeneratedPaper((prev) => ({
-        ...prev,
-        questions: prev.questions.map((q) => {
-          const updatedQ = data.questions.find((uq) => uq.id === q.id);
-          return updatedQ ? { ...q, ...updatedQ } : q;
-        }),
-        updated_at: data.updated_at,
-      }));
-
-      alert(data.message || "Changes saved successfully!");
+  
+      // Call API to save questions
+      const result = await questionService.updateQuestions(updatedQuestions);
+  
+      alert("Changes saved successfully!");
+      console.log("Saved result:", result);
     } catch (error) {
-      console.error("Save error:", error);
-      alert(`Error: ${error.message}`);
+      console.error("Error saving questions:", error);
+      if (error.response) {
+        console.error("Response:", error.response.data);
+      }
+      alert("Failed to save changes.");
     }
+    
   };
+  
 
   // Handle department change to update available topics
   const handleDepartmentChange = (e) => {
@@ -1358,21 +1355,30 @@ const GeneratePaper = () => {
                                     className="question-text-editor w-full p-2 border rounded min-h-24"
                                     value={question.text}
                                     onChange={(e) => {
-                                      const updatedSections = [
-                                        ...generatedPaper.sections,
-                                      ];
-                                      updatedSections[sectionIndex].questions[
-                                        questionIndex
-                                      ] = {
-                                        ...question,
-                                        text: e.target.value,
+                                      const newText = e.target.value;
+                                    
+                                      // Deep copy of sections
+                                      const updatedSections = [...generatedPaper.sections];
+                                      const updatedSection = { ...updatedSections[sectionIndex] };
+                                      const updatedQuestions = [...updatedSection.questions];
+                                    
+                                      // Update just this question
+                                      updatedQuestions[questionIndex] = {
+                                        ...updatedQuestions[questionIndex],
+                                        text: newText,
                                       };
-
+                                    
+                                      // Put updated questions back into the section
+                                      updatedSection.questions = updatedQuestions;
+                                      updatedSections[sectionIndex] = updatedSection;
+                                    
+                                      // Set full updated paper
                                       setGeneratedPaper({
                                         ...generatedPaper,
                                         sections: updatedSections,
                                       });
                                     }}
+                                    
                                   />
                                 </div>
 
