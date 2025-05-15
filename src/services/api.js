@@ -93,6 +93,14 @@ export const questionService = {
       throw error;
     }
   },
+  uploadSyllabus: (formData) => {
+    return api.post('syllabus/upload-syllabus/', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  },
+  
 
   // ✅ Save updated questions (bulk update)
   updateQuestions: async (questions) => {
