@@ -10,7 +10,7 @@ import ViewArchives from './components/archives/viewarchives';
 import UploadQuestionPaper from './components/uploadqpr/uploadqpr';
 import Profile from './components/profile/prof';
 import Settings from './components/settings/Settings';
-import QuestionPaperEditor from './components/QuestionPaperEditor/QuestionPaperEditor'
+import UploadSyllabus from './components/uploadsyllabus/UploadSyllabus';
 // Import Settings component when created
 
 function App() {
@@ -49,9 +49,9 @@ function App() {
               <Settings />
             </ProtectedRoute>
           } />
-          <Route path="/edit-question-paper" element={
+          <Route path="/uploadsyllabus" element={
             <ProtectedRoute>
-              <QuestionPaperEditor />
+              <UploadSyllabus />
             </ProtectedRoute>
           } />
         </Routes>

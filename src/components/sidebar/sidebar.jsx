@@ -24,6 +24,11 @@ const Sidebar = () => {
           </Link>
         </li>
         <li>
+          <Link to="/uploadsyllabus" className="sidebar-link">
+            <FaUpload className="sidebar-icon" /> Upload Syllabus
+          </Link>
+        </li>
+        <li>
           <Link to="/generatepaper" className="sidebar-link">
             <FaFileAlt className="sidebar-icon" /> Generate Paper
           </Link>

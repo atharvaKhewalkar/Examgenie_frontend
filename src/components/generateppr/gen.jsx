@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 
 const GeneratePaper = () => {
   const { state, dispatch } = useContext(AppContext);
+  
   const navigate = useNavigate();
   const [slidersTouched, setSlidersTouched] = useState(false);
   // Initial form state with all required parameters
@@ -157,77 +158,78 @@ const GeneratePaper = () => {
   };
 
   const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedPaper, setGeneratedPaper] = useState(null);
+  const [generatedPaper, setGeneratedPaper] = useState({
+    id: "", // Paper ID from backend
+    user_id: "",
+    title: "",
+    subject_name: "",
+    department: "",
+    topics: [],
+    total_marks: 0,
+    duration: "",
+    include_formula: false,
+    include_diagrams: false,
+    include_answer_key: true,
+    status: "draft",
+    sections: [], // each section has its own questions[]
+  });
+  
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState("basic");
   const [availableTopics, setAvailableTopics] = useState([]);
 
-  function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== "") {
-      const cookies = document.cookie.split(";");
-      for (let i = 0; i < cookies.length; i++) {
-        const cookie = cookies[i].trim();
-        if (cookie.substring(0, name.length + 1) === name + "=") {
-          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-          break;
-        }
-      }
-    }
-    return cookieValue;
-  }
-
   const handleSave = async () => {
     try {
-      const questionsToSave = generatedPaper.questions.map((q) => ({
-        id: q.id,
-        text: q.text,
-        difficulty: q.difficulty,
-        cognitive_level: q.cognitive_level,
-        marks: q.marks,
-        options: q.options || null,
-        answer: q.answer || "",
-        is_practical: q.is_practical,
-        topic: q.topic || "",
-        tags: q.tags || [],
-        diagram: q.diagram || null,
-        formula_required: q.formula_required || false,
-      }));
-
-      const response = await fetch(
-        `/api/papers/${generatedPaper.id}/save_questions/`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": getCookie("csrftoken"),
-          },
-          body: JSON.stringify({ questions: questionsToSave }),
-        }
+      // Flatten updated questions from sections
+      const updatedQuestions = generatedPaper.sections.flatMap(section =>
+        section.questions.map(q => ({
+          id: q.id,
+          text: q.text,
+          marks: q.marks,
+          difficulty: q.difficulty,
+          cognitive_level: q.cognitive_level,
+          options: q.options,
+          answer: q.answer,
+          is_practical: q.is_practical,
+          formula_required: q.formula_required,
+          diagram: q.diagram,
+          topic: q.topic,
+          tags: q.tags,
+        }))
       );
-
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
-        throw new Error(data.message || "Failed to save changes");
-      }
-
-      // Update local state
-      setGeneratedPaper((prev) => ({
-        ...prev,
-        questions: prev.questions.map((q) => {
-          const updatedQ = data.questions.find((uq) => uq.id === q.id);
-          return updatedQ ? { ...q, ...updatedQ } : q;
-        }),
-        updated_at: data.updated_at,
-      }));
-
-      alert(data.message || "Changes saved successfully!");
+  
+      // Call API to save questions
+      const result = await questionService.updateQuestions(updatedQuestions);
+  
+      alert("Changes saved successfully!");
+      console.log("Saved result:", result);
     } catch (error) {
-      console.error("Save error:", error);
-      alert(`Error: ${error.message}`);
+      console.error("Error saving questions:", error);
+      if (error.response) {
+        console.error("Response:", error.response.data);
+      }
+      alert("Failed to save changes.");
+    }
+    
+  };
+  
+  const handleDownloadPDF = async () => {
+    try {
+      const response = await questionService.downloadPaperPDF(generatedPaper.id);
+  
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `${generatedPaper.title || 'paper'}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      console.error('Failed to download PDF:', error);
+      alert('Error downloading PDF.');
     }
   };
+  
 
   // Handle department change to update available topics
   const handleDepartmentChange = (e) => {
@@ -1275,7 +1277,10 @@ const GeneratePaper = () => {
               </div>
 
               <div className="paper-topics">
-                <strong>Topics:</strong> {generatedPaper.topics.join(", ")}
+                <strong>Topics:</strong>{" "}
+                {Array.isArray(generatedPaper?.topics)
+                  ? generatedPaper.topics.join(", ")
+                  : "Not Available"}
               </div>
 
               {generatedPaper.include_formula && (
@@ -1289,136 +1294,141 @@ const GeneratePaper = () => {
               )}
 
               <div className="paper-sections">
-                {generatedPaper.sections.map((section, sectionIndex) => {
-                  const sectionQuestions = generatedPaper.questions.filter(
-                    (q) => q.section === section.id
-                  );
+                {Array.isArray(generatedPaper?.sections) &&
+                generatedPaper.sections.length > 0 ? (
+                  generatedPaper.sections.map((section, sectionIndex) => {
+                    const sectionQuestions = section.questions || [];
 
-                  return (
-                    <div key={sectionIndex} className="paper-section">
-                      <h3>
-                        {section.name} (
-                        {section.question_type === "mcq"
-                          ? "Multiple Choice"
-                          : section.question_type === "numerical"
-                          ? "Numerical"
-                          : section.question_type === "programming"
-                          ? "Programming"
-                          : "Descriptive"}
-                        )
-                      </h3>
+                    return (
+                      <div key={sectionIndex} className="paper-section">
+                        <h3>
+                          {section.name} (
+                          {section.question_type === "mcq"
+                            ? "Multiple Choice"
+                            : section.question_type === "numerical"
+                            ? "Numerical"
+                            : section.question_type === "programming"
+                            ? "Programming"
+                            : "Descriptive"}
+                          )
+                        </h3>
 
-                      <div className="section-questions">
-                        {sectionQuestions.map((question, questionIndex) => {
-                          // Create a unique identifier for each question
-                          const questionId = `question-${section.id}-${questionIndex}`;
+                        <div className="section-questions">
+                          {sectionQuestions.map((question, questionIndex) => {
+                            const questionId = `question-${section.id}-${questionIndex}`;
 
-                          return (
-                            <div key={questionIndex} className="question-item">
-                              <div className="question-header">
-                                <h4>
-                                  Question {questionIndex + 1}{" "}
-                                  <span className="marks">
-                                    ({question.marks} marks)
-                                  </span>
-                                </h4>
-                                <div className="question-tags">
-                                  <span
-                                    className={`difficulty-tag ${question.difficulty}`}
-                                  >
-                                    {question.difficulty
-                                      .charAt(0)
-                                      .toUpperCase() +
-                                      question.difficulty.slice(1)}
-                                  </span>
-                                  <span className="cognitive-tag">
-                                    {question.cognitive_level
-                                      .charAt(0)
-                                      .toUpperCase() +
-                                      question.cognitive_level.slice(1)}
-                                  </span>
-                                  <span
-                                    className={`type-tag ${
-                                      question.is_practical
-                                        ? "practical"
-                                        : "theoretical"
-                                    }`}
-                                  >
-                                    {question.is_practical
-                                      ? "Practical"
-                                      : "Theoretical"}
-                                  </span>
+                            return (
+                              <div
+                                key={questionIndex}
+                                className="question-item"
+                              >
+                                <div className="question-header">
+                                  <h4>
+                                    Question {questionIndex + 1}{" "}
+                                    <span className="marks">
+                                      ({question.marks} marks)
+                                    </span>
+                                  </h4>
+                                  <div className="question-tags">
+                                    <span
+                                      className={`difficulty-tag ${question.difficulty}`}
+                                    >
+                                      {question.difficulty
+                                        .charAt(0)
+                                        .toUpperCase() +
+                                        question.difficulty.slice(1)}
+                                    </span>
+                                    <span className="cognitive-tag">
+                                      {question.cognitive_level
+                                        .charAt(0)
+                                        .toUpperCase() +
+                                        question.cognitive_level.slice(1)}
+                                    </span>
+                                    <span
+                                      className={`type-tag ${
+                                        question.is_practical
+                                          ? "practical"
+                                          : "theoretical"
+                                      }`}
+                                    >
+                                      {question.is_practical
+                                        ? "Practical"
+                                        : "Theoretical"}
+                                    </span>
+                                  </div>
                                 </div>
-                              </div>
 
-                              {/* Editable question text area */}
-                              <div className="question-text-container">
-                                <textarea
-                                  id={questionId}
-                                  className="question-text-editor w-full p-2 border rounded min-h-24"
-                                  value={question.text}
-                                  onChange={(e) => {
-                                    // Create a copy of the questions array
-                                    const updatedQuestions = [
-                                      ...generatedPaper.questions,
-                                    ];
-                                    // Find this question's index in the entire questions array
-                                    const globalQuestionIndex =
-                                      updatedQuestions.findIndex(
-                                        (q) =>
-                                          q.section === section.id &&
-                                          q === question
-                                      );
-                                    // Update the text of this question
-                                    if (globalQuestionIndex !== -1) {
-                                      updatedQuestions[globalQuestionIndex] = {
-                                        ...question,
-                                        text: e.target.value,
+                                {/* Editable question text area */}
+                                <div className="question-text-container">
+                                  <textarea
+                                    id={questionId}
+                                    className="question-text-editor w-full p-2 border rounded min-h-24"
+                                    value={question.text}
+                                    onChange={(e) => {
+                                      const newText = e.target.value;
+                                    
+                                      // Deep copy of sections
+                                      const updatedSections = [...generatedPaper.sections];
+                                      const updatedSection = { ...updatedSections[sectionIndex] };
+                                      const updatedQuestions = [...updatedSection.questions];
+                                    
+                                      // Update just this question
+                                      updatedQuestions[questionIndex] = {
+                                        ...updatedQuestions[questionIndex],
+                                        text: newText,
                                       };
-                                      // Update the state with the modified questions
+                                    
+                                      // Put updated questions back into the section
+                                      updatedSection.questions = updatedQuestions;
+                                      updatedSections[sectionIndex] = updatedSection;
+                                    
+                                      // Set full updated paper
                                       setGeneratedPaper({
                                         ...generatedPaper,
-                                        questions: updatedQuestions,
+                                        sections: updatedSections,
                                       });
-                                    }
-                                  }}
-                                />
-                              </div>
+                                    }}
+                                    
+                                  />
+                                </div>
 
-                              {question.question_type === "mcq" &&
-                                question.options && (
-                                  <div className="question-options mt-2">
-                                    {question.options.map(
-                                      (option, optionIndex) => (
-                                        <div
-                                          key={optionIndex}
-                                          className="option"
-                                        >
-                                          <span className="option-letter">
-                                            {String.fromCharCode(
-                                              65 + optionIndex
-                                            )}
-                                            .
-                                          </span>{" "}
-                                          {option}
-                                        </div>
-                                      )
-                                    )}
+                                {question.question_type === "mcq" &&
+                                  question.options && (
+                                    <div className="question-options mt-2">
+                                      {question.options.map(
+                                        (option, optionIndex) => (
+                                          <div
+                                            key={optionIndex}
+                                            className="option"
+                                          >
+                                            <span className="option-letter">
+                                              {String.fromCharCode(
+                                                65 + optionIndex
+                                              )}
+                                              .
+                                            </span>{" "}
+                                            {option}
+                                          </div>
+                                        )
+                                      )}
+                                    </div>
+                                  )}
+
+                                {generatedPaper.include_answer_key && (
+                                  <div className="question-answer mt-2">
+                                    <strong>Answer:</strong> {question.answer}
                                   </div>
                                 )}
-
-                              {generatedPaper.include_answer_key && (
-                                <div className="question-answer mt-2">
-                                  <strong>Answer:</strong> {question.answer}
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })}
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })
+                ) : (
+                  <div>No sections available.</div>
+                )}
               </div>
 
               <div className="paper-actions mt-4">
@@ -1430,11 +1440,7 @@ const GeneratePaper = () => {
                 </button>
                 <button
                   className="download-button mr-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                  onClick={() =>
-                    alert(
-                      "PDF download functionality will be implemented with backend integration"
-                    )
-                  }
+                  onClick={handleDownloadPDF}
                 >
                   Download PDF
                 </button>
