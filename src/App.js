@@ -20,39 +20,39 @@ function App() {
         <Routes>
           <Route path="/" element={<AuthForm />} />
           <Route path="/home" element={
-            <ProtectedRoute>
+       
               <Homepage />
-            </ProtectedRoute>
+           
           } />a
           <Route path="/generatepaper" element={
-            <ProtectedRoute>
+            
               <GeneratePaper />
-            </ProtectedRoute>
+           
           } />
           <Route path="/viewArchives" element={
-            <ProtectedRoute>
+            
               <ViewArchives />
-            </ProtectedRoute>
+         
           } />
           <Route path="/uploadquestionpaper" element={
-            <ProtectedRoute>
+          
               <UploadQuestionPaper />
-            </ProtectedRoute>
+         
           } />
           <Route path="/profile" element={
-            <ProtectedRoute>
+           
               <Profile />
-            </ProtectedRoute>
+            
           } />
           <Route path="/settings" element={
-            <ProtectedRoute>
+           
               <Settings />
-            </ProtectedRoute>
+           
           } />
           <Route path="/uploadsyllabus" element={
-            <ProtectedRoute>
+          
               <UploadSyllabus />
-            </ProtectedRoute>
+          
           } />
         </Routes>
       </div>
